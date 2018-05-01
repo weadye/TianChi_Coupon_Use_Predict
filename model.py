@@ -95,4 +95,51 @@ def processData(df):
 
 dfoff = processData(dfoff)
 dftest = processData(dftest)
-a =1
+print("Data:")
+print(dfoff.head(2))
+print(dftest.head(2))
+
+date_received = dfoff['Date_received'].unique()
+date_received = sorted(date_received[date_received == date_received])
+
+date_buy = dfoff['Date'].unique()
+date_buy = sorted(date_buy[date_buy == date_buy])
+
+print('优惠券收到日期从',date_received[0],'到', date_received[-1])
+print('消费日期从', date_buy[0], '到', date_buy[-1])
+tmp1 = dfoff[dfoff['Date_received'] == dfoff['Date_received']][['Date_received', 'Date']]
+tmp1.Date = 1
+couponbydate = tmp1.groupby(['Date_received'], as_index=False).count()
+couponbydate.columns = ['Date_received','count']
+tmp = dfoff[(dfoff['Date'] == dfoff['Date']) & (dfoff['Date_received'] == dfoff['Date_received'])]
+buybydate = dfoff[(dfoff['Date'] == dfoff['Date']) & (dfoff['Date_received'] == dfoff['Date_received'])][['Date_received', 'Date']].groupby(['Date_received'], as_index=False).count()
+buybydate.columns = ['Date_received','count']
+sns.set_style('ticks')
+sns.set_context("notebook", font_scale= 1.4)
+plt.figure(figsize = (12,8))
+date_received_dt = pd.to_datetime(date_received, format='%Y%m%d')
+
+plt.subplot(211)
+plt.bar(date_received_dt, couponbydate['count'], label = 'number of coupon received' )
+plt.bar(date_received_dt, buybydate['count'], label = 'number of coupon used')
+plt.yscale('log')
+plt.ylabel('Count')
+plt.legend()
+
+plt.subplot(212)
+plt.bar(date_received_dt, buybydate['count']/couponbydate['count'])
+plt.ylabel('Ratio(coupon used/coupon received)')
+plt.tight_layout()
+plt.show()
+
+def getWeekday(row):
+    if row == 'null':
+        return row
+    else:
+        return date(int(row[0:4]), int(row[4:6]), int(row[6:8])).weekday() + 1
+
+dfoff['weekday'] = dfoff['Date_received'].astype(str).apply(getWeekday)
+dftest['weekday'] = dftest['Date_received'].astype(str).apply(getWeekday)
+# weekday_type :  周六和周日为1，其他为0
+dfoff['weekday_type'] = dfoff['weekday'].apply(lambda x : 1 if x in [6,7] else 0 )
+dftest['weekday_type'] = dftest['weekday'].apply(lambda x : 1 if x in [6,7] else 0 )
