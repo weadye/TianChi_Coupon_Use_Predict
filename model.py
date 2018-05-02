@@ -38,7 +38,6 @@ print('2. Merchant_id in training set but not in test set', set(dftest['Merchant
 print('Discount_rate 类型:',dfoff['Discount_rate'].unique())
 print('Distance 类型:', dfoff['Distance'].unique())
 
-
 # convert Discount_rate and Distance
 
 def getDiscountType(row):
